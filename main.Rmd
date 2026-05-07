@@ -1,0 +1,18 @@
+---
+title: "VDS2526"
+author:
+  - "Sofiya Antonyuk (2467715)"
+  - "Benedict Pierret TAA NGUIMBIS ESSEME (2261512)"
+  - "Viktor Szabó (2503521)"
+  - "Ferenc Wimmer (2469928)"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+print("Hello World")
+```
