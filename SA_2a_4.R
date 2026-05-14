@@ -39,36 +39,39 @@ q2a_data <- all_data %>%
   filter(year == 2018) %>%
   group_by(station) %>%
   summarise(
-    avg_NO2 = mean(NO_2, na.rm = TRUE)
+    avg_NO2 = mean(NO_2, na.rm = TRUE),
+    .groups = "drop"
   ) %>%
   arrange(desc(avg_NO2))
 
-# Color blind friendly colors
-q2a_data <- q2a_data %>%
-  mutate(
-    pollution_level = case_when(
-      avg_NO2 > 60 ~ ">60",
-      avg_NO2 >= 45 ~ "45-60",
-      avg_NO2 >= 30 ~ "30-45",
-      avg_NO2 >= 15 ~ "15-30",
-      TRUE ~ "<15"
-    ),
-    pollution_color = case_when(
-      avg_NO2 > 60 ~ "#440154",
-      avg_NO2 >= 45 ~ "#31688E",
-      avg_NO2 >= 30 ~ "#35B779",
-      avg_NO2 >= 15 ~ "#90d743",
-      TRUE ~ "#FDE725"
-    )
-  )
+# dynamic breaks based on actual values
 
-# Order legend
-q2a_data$pollution_level <- factor(
-  q2a_data$pollution_level,
-  levels = c(">60", "45-60", "30-45", "15-30", "<15")
+no2_breaks <- pretty(q2a_data$avg_NO2, n = 5)
+
+# dynamic color palette based on actual values
+
+pal <- colorBin(
+  palette = c("#FDE725", "#90d743", "#35B779", "#31688E", "#440154"),
+  domain = q2a_data$avg_NO2,
+  bins = no2_breaks,
+  pretty = FALSE
 )
 
-# Join station locations
+# add dynamic legend labels and colors
+
+q2a_data <- q2a_data %>%
+  mutate(
+    pollution_level = cut(
+      avg_NO2,
+      breaks = no2_breaks,
+      include.lowest = TRUE,
+      dig.lab = 5
+    ),
+    pollution_color = pal(avg_NO2)
+  )
+
+# join station locations
+
 q2a_map_data <- q2a_data %>%
   left_join(
     stations,
@@ -97,8 +100,8 @@ SA_q2a_hotspot <- leaflet(q2a_map_data) %>%
   ) %>%
   addLegend(
     position = "topright",
-    colors = c("#440154", "#31688E", "#35B779", "#90d743", "#FDE725"),
-    labels = c(">60", "45-60", "30-45", "15-30", "<15"),
+    pal = pal,
+    values = ~avg_NO2,
     title = "Avg. NO2 (µg/m3)",
     opacity = 1
   )
@@ -113,11 +116,11 @@ SA_q2a_barchart <- plot_ly(
   y = ~reorder(as.character(station), avg_NO2),
   type = "bar",
   orientation = "h",
-  marker = list(
-    color = q2a_data$pollution_color
+  color = ~pollution_level,
+  colors = setNames(
+    unique(q2a_data$pollution_color),
+    unique(q2a_data$pollution_level)
   ),
-  name = ~pollution_level,
-  showlegend = TRUE,
   hoverinfo = "text",
   text = ~paste(
     "Station:", station,
