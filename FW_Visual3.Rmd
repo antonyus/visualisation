@@ -1,0 +1,141 @@
+---
+title: "Visual3"
+output: html_document
+---
+
+```{r}
+# =========================================================
+# Task - 3b
+# =========================================================
+library(tidyverse)
+library(lubridate)
+library(plotly)
+library(htmlwidgets)
+
+# ---------------------------------------------------------
+# 1. CALCULATE YEARLY AVERAGES
+# ---------------------------------------------------------
+yearly_avg <- df %>%
+  group_by(year) %>%
+  summarise(
+    across(all_of(pollutants), ~ mean(.x, na.rm = TRUE))
+  )
+
+# ---------------------------------------------------------
+# 2. KEEP ONLY POLLUTANT COLUMNS
+# ---------------------------------------------------------
+corr_data <- yearly_avg %>%
+  select(all_of(pollutants))
+
+# ---------------------------------------------------------
+# 3. COMPUTE CORRELATION MATRIX
+# ---------------------------------------------------------
+corr_matrix <- cor(
+  corr_data,
+  use    = "pairwise.complete.obs",
+  method = "pearson"
+)
+
+# ---------------------------------------------------------
+# 4. MASK UPPER TRIANGLE  (keep lower triangle + diagonal)
+# ---------------------------------------------------------
+corr_masked <- corr_matrix
+corr_masked[upper.tri(corr_masked)] <- NA
+
+# ---------------------------------------------------------
+# 5. BUILD INTERACTIVE HEATMAP
+# ---------------------------------------------------------
+fig <- plot_ly(
+  x          = colnames(corr_masked),
+  y          = rownames(corr_masked),
+  z          = corr_masked,
+  type       = "heatmap",
+  colorscale = list(
+    list(0,    "#d73027"),   # red: -1
+    list(0.5,  "#ffffff"),   # white: 0
+    list(1,    "#1a9850")    # green: +1
+  ),
+  zmin       = -1,
+  zmax       =  1,
+  colorbar   = list(
+    title      = "Correlation",
+    titleside  = "right",
+    tickvals   = c(-1, -0.5, 0, 0.5, 1),
+    ticktext   = c("-1", "-0.5", "0", "0.5", "1"),
+    len        = 0.75
+  ),
+  text       = matrix(
+    sprintf("%.2f", corr_masked),
+    nrow = nrow(corr_masked),
+    dimnames = list(rownames(corr_masked), colnames(corr_masked))
+  ),
+  hovertemplate = paste0(
+    "<b>%{y} × %{x}</b><br>",
+    "Pearson r = %{text}<br>",
+    "<extra></extra>"
+  ),
+  xgap = 2,
+  ygap = 2
+) %>%
+  add_annotations(
+    x          = rep(colnames(corr_masked), each = nrow(corr_masked)),
+    y          = rep(rownames(corr_masked), times = ncol(corr_masked)),
+    text       = sprintf("%.2f", as.vector(corr_masked)),
+    showarrow  = FALSE,
+    font       = list(size = 10, color = "black"),
+    xref       = "x",
+    yref       = "y"
+  ) %>%
+  layout(
+    title = list(
+      text = "<b>Correlation Between Air Pollutants (2001–2018)</b>",
+      font = list(size = 16),
+      x    = 0.5
+    ),
+    xaxis = list(
+      title       = "",
+      tickangle   = -45,
+      tickfont    = list(size = 11),
+      showgrid    = FALSE,
+      fixedrange  = TRUE # disable zoom on x-axis (heatmap looks better fixed)
+    ),
+    yaxis = list(
+      title       = "",
+      tickfont    = list(size = 11),
+      showgrid    = FALSE,
+      autorange   = "reversed", # match ggplot orientation (Var1 top-to-bottom)
+      fixedrange  = TRUE
+    ),
+    margin        = list(l = 80, r = 20, t = 60, b = 80),
+    paper_bgcolor = "white",
+    plot_bgcolor  = "white",
+    font          = list(family = "Arial, sans-serif")
+  ) %>%
+  config(
+    displayModeBar = TRUE,
+    modeBarButtonsToRemove = c("zoom2d", "pan2d", "select2d",
+                               "lasso2d", "zoomIn2d", "zoomOut2d",
+                               "autoScale2d", "resetScale2d"),
+    toImageButtonOptions = list(
+      format   = "png",
+      filename = "correlation_heatmap_madrid",
+      width    = 900,
+      height   = 800,
+      scale    = 2
+    )
+  )
+
+# ---------------------------------------------------------
+# 6. DISPLAY
+# ---------------------------------------------------------
+fig
+
+# ---------------------------------------------------------
+# 7. SAVE AS HTML
+# ---------------------------------------------------------
+# saveWidget(fig, "correlation_heatmap_interactive.html", selfcontained = TRUE)
+
+```
+
+
+
