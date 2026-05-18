@@ -10,7 +10,6 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-
 knitr::opts_chunk$set(
   echo = FALSE,
   warning = FALSE,
@@ -20,8 +19,15 @@ knitr::opts_chunk$set(
 # bring in your plots
 source("SA_2a_4.R")
 
+source("FW_1_3a_3b.R")
+FWdata <- load_pollution_data("VDS2526_Madrid") # path to the folder that contains all the csv files (stations.csv can be present in the folder)
 ```
 
+# Q1. Evolution of pollution in Madrid over time
+
+```{r}
+plot_yearly_averages(FWdata$df, FWdata$pollutants)
+```
 
 # Q2a. 2018 Average NO2 Hotspot Map
 
@@ -35,8 +41,21 @@ SA_q2a_hotspot
 SA_q2a_barchart
 ```
 
+# 3a. Evolution of different pollutants
+
+```{r}
+plot_relative_change(FWdata$df, FWdata$pollutants)
+```
+
+# 3b. Correlation between pollutants
+
+```{r}
+plot_correlation_heatmap(FWdata$df, FWdata$pollutants)
+```
+
 # Q4. 2001-2018 Heat Map
 
 ```{r}
 SA_q4_heatmap
 ```
+
