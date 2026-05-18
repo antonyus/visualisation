@@ -2,6 +2,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(patchwork)
+library(plotly)
 
 yearly <- read.csv("yearly_pollution.csv")
 
