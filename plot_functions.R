@@ -5,6 +5,8 @@ library(patchwork)
 library(plotly)
 library(leaflet)
 library(viridis)
+library(purrr)
+library(tidyverse)
 
 yearly <- read.csv("yearly_pollution.csv")
 
@@ -49,38 +51,29 @@ mg_long$pollutant <- factor(mg_long$pollutant, levels = mg_order)
 
 
 plot_q1 <- function(yearlimit){
-ug_long_filtered <- ug_long %>% filter(year <= yearlimit)
-mg_long_filtered <- mg_long %>% filter(year <= yearlimit)
-p1 <- ggplot(ug_long_filtered, aes(x = year, y = concentration, colour = pollutant)) +
-  geom_line() + geom_point() +
-  labs(x = "year", y = "Concentration (µg/m³)", colour = NULL) +
-  theme_classic()
-
-p2 <- ggplot(mg_long_filtered, aes(x = year, y = concentration, colour = pollutant)) +
-  geom_line() + geom_point() +
-  labs(x = "year", y = "Concentration (mg/m³)", colour = NULL) +
-  theme_classic()
-
-combined <- p1 + p2
-combined
-}
-
-
-plot_q1 <- function(yearlimit){
+  
   ug_long_filtered <- ug_long %>% filter(year <= yearlimit)
   mg_long_filtered <- mg_long %>% filter(year <= yearlimit)
+  
   p1 <- ggplot(ug_long_filtered, aes(x = year, y = concentration, colour = pollutant)) +
-    geom_line() + geom_point() +
+    geom_line(linewidth = 1.2) + geom_point(size = 2) +
     labs(x = "year", y = "Concentration (µg/m³)", colour = NULL) +
-    theme_classic()
+    theme_minimal(base_size = 14) +
+    theme(
+      plot.title = element_text(face = "bold"),
+      panel.grid.minor = element_blank()
+    ) + scale_color_viridis_d(option = "E")
   
   p2 <- ggplot(mg_long_filtered, aes(x = year, y = concentration, colour = pollutant)) +
-    geom_line() + geom_point() +
+    geom_line(linewidth = 1.2) + geom_point(size = 2) +
     labs(x = "year", y = "Concentration (mg/m³)", colour = NULL) +
-    theme_classic()
+    theme_minimal(base_size = 14) +
+    theme(
+      plot.title = element_text(face = "bold"),
+      panel.grid.minor = element_blank()
+    ) + scale_color_viridis_d(option = "E")
   
-  combined <- p1 + p2
-  combined
+  subplot(ggplotly(p1), ggplotly(p2), nrows = 1, shareY = FALSE, titleX = TRUE, titleY = TRUE)
 }
 
 plot_q2a_data <- function(yearlimit) {
@@ -269,7 +262,7 @@ plot_q3a <- function(base_year = 2001, max_year=2018) {
       axis.text.x = element_text(angle = 45, hjust = 1),
       legend.position = "right",
       panel.grid.minor = element_blank()
-    )
+    ) + scale_color_viridis_d(option = "E")
   
   ggplotly(p_relative, tooltip = "text")
 }
@@ -292,11 +285,7 @@ plot_q3b <- function(){
     y = rownames(corr_masked),
     z = corr_masked,
     type = "heatmap",
-    colorscale = list(
-      list(0, "#d73027"),
-      list(0.5, "#ffffff"),
-      list(1, "#1a9850")
-    ),
+    colorscale = "Cividis",
     zmin = -1,
     zmax = 1,
     colorbar = list(

@@ -16,7 +16,7 @@ ui <- fluidPage((titlePanel("Group 22 visualization")),
                     tabsetPanel(
                       tabPanel("Q1",
                         q1_title,
-                        plotOutput("q1"),
+                        plotlyOutput("q1"),
                         q1_description
                       ),
                       tabPanel("Q2",
@@ -49,7 +49,7 @@ ui <- fluidPage((titlePanel("Group 22 visualization")),
 )
 
 server <- function(input, output){
-  output$q1 <- renderPlot({
+  output$q1 <- renderPlotly({
     plot_q1(input$years)
   })
   output$q2a_hotspot <- renderLeaflet({
