@@ -45,7 +45,7 @@ df <- df |> transform(date = as.Date(date))|>
 df_monthly <- df |> filter(year >= 2008) |>group_by(year, month, station, name)|> 
   summarise(across(c("BEN", "CO", "EBE", "MXY", "NMHC", "NO_2", "NOx", "OXY", 
 "O_3", "PM10", "PXY", "SO_2", "TCH", "TOL", "PM25", 
-"NO", "CH4"), ~sum(.x, na.rm = T)), .groups = "drop")|>
+"NO", "CH4"), ~mean(.x, na.rm = T)), .groups = "drop")|>
   mutate(station2 = station,
   date = lubridate::make_date(year = year, month = month, day = 1L)
   )
@@ -120,8 +120,8 @@ panel_plot <- function(df1, df2, x, y, name){
   size = 3.5, color = "grey45", hjust = 0)+
   geom_line(aes(group = station), color = "#933d22", linewidth = .8)+  
   scale_x_date(limits =c(as.Date("2008-01-01"), as.Date("2018-04-01")) )+
-  labs(y = paste0("Monthly Emissions in ", y, " (", pollutant$unit[pollutant$variable == y], ")"))+
-    ggtitle(glue::glue("<b>Montly total air concentration of {pollutant$description[pollutant$variable == y]} in <span style = 'color:#933d22;'> areas of Madrid </span> compared to <span style = 'color:#1f387b;'> the median city emissions </span> </b><br>"))+
+  labs(y = paste0("Emissions of ", y, " (", pollutant$unit[pollutant$variable == y], ")"))+
+    ggtitle(glue::glue("<b>Montly mean air concentration of {pollutant$description[pollutant$variable == y]} in <span style = 'color:#933d22;'> areas of Madrid </span> compared to <span style = 'color:#1f387b;'> the median city emissions </span> </b><br>"))+
   facet_wrap(vars(station), ncol = 5)+
       theme_minimal(base_family =  "Lato", base_size = 14) +
     theme(
