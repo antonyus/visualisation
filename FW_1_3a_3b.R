@@ -54,12 +54,11 @@ plot_yearly_averages <- function(df, pollutants) {
 
     group1 <- c("NMHC", "CH4", "CO")
     group2 <- c(
-        "SO_2", "NO", "NO_2", "PM25", "NOx", "O_3",
+        "SO_2", "NO", "NO_2", "PM10", "PM25", "NOx", "O_3",
         "TOL", "BEN", "EBE", "MXY", "PXY", "OXY", "TCH"
     )
-    group3 <- c("PM10")
 
-    all_pollutants <- c(group1, group2, group3)
+    all_pollutants <- c(group1, group2)
 
     palette_vals <- c(
         "#3266ad", "#d85a30", "#1d9e75", "#c94b8e", "#73726c",
@@ -100,10 +99,10 @@ plot_yearly_averages <- function(df, pollutants) {
 
     p1 <- make_group_plot(yearly_avg, group1, "mg/m³")
     p2 <- make_group_plot(yearly_avg, group2, "µg/m³")
-    p3 <- make_group_plot(yearly_avg, group3, "µg/m³")
+    # p3 <- make_group_plot(yearly_avg, group3, "") # TODO: decide about the scale
 
     subplot(
-        p1, p2, p3,
+        p1, p2,
         nrows = 1,
         shareX = FALSE,
         shareY = FALSE,
@@ -129,7 +128,7 @@ plot_yearly_averages <- function(df, pollutants) {
             xaxis3 = list(title = "Year", tickangle = -45, dtick = 1, tickfont = list(size = 9)),
             yaxis = list(title = "mg/m³"),
             yaxis2 = list(title = "µg/m³"),
-            yaxis3 = list(title = "µg/m³"),
+            # yaxis3 = list(title = ""), # TODO: decide about the scale
             paper_bgcolor = "white",
             plot_bgcolor = "white",
             font = list(family = "Arial, sans-serif")
@@ -193,10 +192,10 @@ plot_relative_change <- function(df, pollutants, base_year = 2001) {
         geom_hline(
             yintercept = 100,
             linetype = "dashed",
-            linewidth = 1,
+            linewidth = 0.5,
             color = "black"
         ) +
-        geom_line(linewidth = 1.2, alpha = 0.9) +
+        geom_line(linewidth = 0.8, alpha = 0.9) +
         geom_point(size = 2) +
         scale_x_continuous(breaks = seq(2001, 2018, 1)) +
         labs(
@@ -207,7 +206,11 @@ plot_relative_change <- function(df, pollutants, base_year = 2001) {
         ) +
         theme_minimal(base_size = 14) +
         theme(
-            plot.title = element_text(face = "bold", hjust = 0.5),
+            plot.title = element_text(
+                face = "bold",
+                hjust = 0.5,
+                size = 12
+            ),
             axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "right",
             panel.grid.minor = element_blank()
