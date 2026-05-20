@@ -5,6 +5,7 @@ library(gganimate)
 library(tidyr)
 library(stringr)
 
+
 files <- file.path("data",list.files("data/")[-length(list.files("data/"))])
 
 df <- plyr::rbind.fill(Map(read.csv, files))
@@ -114,14 +115,14 @@ panel_plot <- function(df1, df2, x, y, name){
 
   df1|> 
   ggplot(aes(x = !!sym(x), y = !!sym(y)))+
-  geom_line(data = select(df1, - station), aes(group = station2), color = "grey80")+
-  geom_line(data = df2 , color = "#1f387b", linewidth = .5)+
-  geom_text(aes(x = max(date)-1000, y = max(!!sym(y))+5, label = str_trunc(name, 10) ), 
-  size = 3.5, color = "grey45", hjust = 0)+
-  geom_line(aes(group = station), color = "#933d22", linewidth = .8)+  
+  geom_line(data = select(df1, - station), aes(group = station2), color ="grey80", linewidth = .9 )+
+  geom_line(data = df2 , color = "#1a85ff", linewidth = .4, linetype = 5)+
+  geom_text(aes(x = max(date,na.rm = T)-1300, y = max(!!sym(y), na.rm = T)+1, label = str_trunc(name, 15)), 
+  size = 4, color = "grey45", hjust = 0, fontfamily = "Lato")+
+  geom_line(aes(group = station), color = "#d41159", linewidth = .5)+  
   scale_x_date(limits =c(as.Date("2008-01-01"), as.Date("2018-04-01")) )+
-  labs(y = paste0("Emissions of ", y, " (", pollutant$unit[pollutant$variable == y], ")"))+
-    ggtitle(glue::glue("<b>Montly mean air concentration of {pollutant$description[pollutant$variable == y]} in <span style = 'color:#933d22;'> areas of Madrid </span> compared to <span style = 'color:#1f387b;'> the median city emissions </span> </b><br>"))+
+  labs(y = paste0("Emissions of ", pollutant$description[pollutant$variable == y], " (", pollutant$unit[pollutant$variable == y], ")"))+
+    ggtitle(glue::glue("<b>Montly mean air concentration of {pollutant$description[pollutant$variable == y]} in <span style = 'color:#d41159;'> areas of Madrid </span> compared to <span style = 'color:#1a85ff;'> the mean city emissions </span> </b><br>"))+
   facet_wrap(vars(station), ncol = 5)+
       theme_minimal(base_family =  "Lato", base_size = 14) +
     theme(
@@ -133,9 +134,11 @@ panel_plot <- function(df1, df2, x, y, name){
       legend.position = "top",
       strip.text = element_blank(),
       legend.title = element_blank(),
-      plot.background = element_rect(fill = "#FFF9F3", colour = NA),
+      plot.background = element_rect(fill = "#FFFFFF", colour = NA),
       panel.grid.minor = element_blank(),
       panel.grid.major.y = element_blank(),
+      panel.grid.major.x = element_blank(),
+      axis.title.x = element_blank(),
       plot.title.position = "plot",
       plot.title = ggtext::element_textbox_simple(face = "bold", family = "Playfair Display")
     )
@@ -158,8 +161,12 @@ plots <- purrr::map(c(
     "O_3", "TOL", "BEN", "EBE", "MXY", "PXY", "OXY",
     "TCH", "CH4", "NMHC"))
 
-plots$O_3
-
+purrr::walk2(plots,c(
+    "SO_2", "CO", "NO", "NO_2", "PM25", "PM10", "NOx",
+    "O_3", "TOL", "BEN", "EBE", "MXY", "PXY", "OXY",
+    "TCH", "CH4", "NMHC") ,~ggsave(file.path("fig",paste0(.y,".png")), .x, 
+  dpi = 720, width = 20, height = 10
+  ))
 
 
 
