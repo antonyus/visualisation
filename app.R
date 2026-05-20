@@ -1,54 +1,73 @@
 library(shiny)
+library(bslib)
+library(shinycssloaders)
+
 source("plot_functions.R")
 source("plot_descriptions.R")
 
-
-ui <- fluidPage((titlePanel("Group 22 visualization")),
-                sidebarLayout(
-                  sidebarPanel(
-                    sliderInput("years",
-                               "Years until:",
-                               min = 2001,
-                               max = 2018,
-                               value = 2010,
-                               step = 1,
-                               animate = TRUE)),
-                  mainPanel("Research questions",
-                    tabsetPanel(
-                      tabPanel("Q1",
-                        q1_title,
-                        plotOutput("q1"),
-                        q1_description
-                      ),
-                      tabPanel("Q2",
-                        q2_hotspot_title,
-                        leafletOutput("q2a_hotspot"),
-                        q2_hotspot_description,
-                        q2_barchart_title,
-                        plotlyOutput("q2a_barchart"),
-                        q2_barchart_description,
-                        q2_spaghetti_title,
-                        selectInput("pollutant", "Select a pollutants", choices = pollutants),
-                        plotOutput("q2b", height = "1000px",),
-                        q2_spaghetti_description
-                      ),
-                      tabPanel("Q3",
-                        q3a_title,
-                        plotlyOutput("q3a"),
-                        q3a_description,
-                        q3b_title,
-                        plotlyOutput("q3b"),
-                        q3b_description
-                      ),
-                      tabPanel(
-                        "Q4",
-                        q4_title,
-                        plotlyOutput("q4", height = "600px"),
-                        q4_description
-                      )
-                    )
-                )
-            )
+ui <- page_navbar(
+  title = "Madrid Air Quality Monitor",
+  sidebar = sidebar(
+    title = "Inputs",
+    sliderInput("years",
+                "Years until:",
+                min = 2001L,
+                max = 2018L,
+                value = 2010,
+                step = 1L,
+                animate = TRUE)
+  ),nav_spacer(),
+  nav_panel(
+    title = "Evolution of Pollution",
+    card(
+      card_header(q1_title),
+      withSpinner(plotOutput("q1")),
+      q1_description
+    )
+  ),
+  nav_panel(
+    title = "Polluted Areas",
+    
+    card(min_height = "1000px",
+      card_header(q2_hotspot_title),
+      withSpinner(leafletOutput("q2a_hotspot")),
+      q2_hotspot_description
+    ),
+    card(min_height = "1000px",
+      card_header(q2_barchart_title),
+      withSpinner(plotlyOutput("q2a_barchart")),
+      q2_hotspot_description
+    ),
+    card(min_height = "1550px",
+      card_header(q2_spaghetti_title),
+      selectInput("pollutant", "Select a pollutant", choices = pollutants),
+      withSpinner(plotOutput("q2b", height = "1000px")),
+      q2_spaghetti_description
+    )
+    
+  ),
+  nav_panel(
+    title = "Pollutant Evolution",
+    
+    card(min_height = "1000px",
+      card_header(q3a_title),
+      withSpinner(plotlyOutput("q3a")),
+      q3a_description
+    ),
+    card(min_height = "1000px",
+      card_header(q3b_title),
+      withSpinner(plotlyOutput("q3b")),
+      q3b_description
+    )
+    
+  ),
+  nav_panel(
+    title = "Pollution Hotspots",
+    card(
+      card_header(q4_title),
+      withSpinner(plotlyOutput("q4", height = "600px")),
+    )
+  )
 )
 
 server <- function(input, output){
@@ -78,6 +97,4 @@ server <- function(input, output){
   )
 }
 
-
-
-shinyApp(ui = ui,server=server)
+shinyApp(ui, server)

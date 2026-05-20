@@ -121,11 +121,9 @@ NO₂ concentration, and pollution category associated with the selected year.
 
 q2_spaghetti_description <- HTML("
 <b>Description:</b><br>
-This plot describe the trends in average monthly concentrations of pollutants in different locations of Madrid between 2008 and 2010.<br>
-It helps in monitoring the concentrations of pollutants relative to different locations and the mean of the city. 
+This plot describe the trends in average monthly concentrations of pollutants in different locations of Madrid between 2008 and 2010. It helps in monitoring the concentrations of pollutants relative to different locations and the mean of the city. 
 The colors highlight the location specified in the panel title (red), and the blue color shows the mean of the city.<br>
-The vertical postition of lines channels the concentration of the pollutant while the horizontal position the dates.<br> 
-The the vertical position of the line at both ends of the plots indicate the improvement or worsening between w008 and 2010.<br>
+The vertical postition of lines channels the concentration of the pollutant while the horizontal position the dates. The the vertical position of the line at both ends of the plots indicate the improvement or worsening between w008 and 2010.<br>
 
 <b>How to read the plot:</b><br>
 
