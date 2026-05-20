@@ -1,0 +1,96 @@
+---
+title: "VDS2526"
+author:
+  - "Sofiya Antonyuk (2467715)"
+  - "Benedict Pierret TAA NGUIMBIS ESSEME (2261512)"
+  - "Viktor Szabó (2503521)"
+  - "Ferenc Wimmer (2469928)"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+
+# bring in your plots
+source("SA_2a_4.R")
+
+source("FW_1_3a_3b.R")
+FWdata <- load_pollution_data("VDS2526_Madrid") # path to the folder that contains all the csv files (stations.csv can be present in the folder)
+```
+
+# Q1. Evolution of pollution in Madrid over time
+
+**Description:**  
+This visualization shows the yearly average concentration of different air pollutants in Madrid between 2001 and 2018.  
+Because the pollutants are measured on different scales (mg/m³, µg/m³, and PM10 on a separate scale), they are divided into three separate plots to improve readability and comparison.  
+
+Some values are missing in the original dataset, but the overall trends and changes in pollutant concentrations over the 17-year period remain clearly visible.
+
+**How to read the plot:**  
+The X-axis represents the year, while the Y-axis shows the average pollutant concentration.  
+Each colored line corresponds to a specific pollutant, and the data points represent the yearly average value for that pollutant. Hovering over the points reveals the exact values for each year.
+
+
+```{r}
+plot_yearly_averages(FWdata$df, FWdata$pollutants)
+```
+
+# Q2a. 2018 Average NO2 Hotspot Map
+
+```{r}
+SA_q2a_hotspot
+```
+
+# Q2a. 2018 Average NO2 Bar Chart
+
+```{r}
+SA_q2a_barchart
+```
+
+# 3a. Evolution of different pollutants
+
+**Description:**  
+This visualization shows the relative change in pollutant concentrations over time, using 2001 as the baseline year (100%). Each following year is compared to the pollutant value measured in 2001.  
+
+Values above the dashed reference line indicate higher concentrations compared to 2001, while values below the line indicate a decrease. Despite some missing measurements in the dataset, the overall continuity and long-term trends remain clearly visible.  
+
+Only pollutants with a valid measurement available for the base year (2001) are included in this visualization.
+
+**How to read the plot:**  
+The X-axis represents the year, while the Y-axis shows the relative pollutant concentration as a percentage compared to 2001.  
+
+Each colored line represents a specific pollutant and illustrates how its concentration changed between 2001 and 2018. For example, TCH remained relatively stable over time, staying close to the 100% baseline, while most other pollutants show a significant decrease throughout the observed period.
+
+```{r}
+plot_relative_change(FWdata$df, FWdata$pollutants)
+```
+
+# 3b. Correlation between pollutants
+
+**Description:**  
+This visualization shows the correlation between the different air pollutants measured in Madrid between 2001 and 2018. The correlations were calculated using the yearly average concentration values of each pollutant.  
+
+Dark green tiles indicate a strong positive correlation, meaning that the concentrations of two pollutants tend to increase or decrease together. Dark red tiles represent a strong negative correlation, meaning that when the concentration of one pollutant increases, the other tends to decrease. White or lighter-colored areas indicate weak or insignificant correlations.  
+
+The correlations were computed using all available overlapping yearly measurements between pollutant pairs. Therefore, pollutants do not need to contain valid values for every single year in order to appear in the visualization.
+
+**How to read the plot:**  
+Because the correlation matrix is symmetric, only the lower half of the heatmap is displayed in order to avoid duplicated information.  
+
+The main diagonal contains only values equal to 1.00, since every pollutant is perfectly correlated with itself. Each remaining tile represents the Pearson correlation coefficient between two pollutants over the 2001–2018 period. The numerical value displayed inside each tile indicates the strength and direction of the correlation.
+
+```{r}
+plot_correlation_heatmap(FWdata$df, FWdata$pollutants)
+```
+
+# Q4. 2001-2018 Heat Map
+
+```{r}
+SA_q4_heatmap
+```
+
