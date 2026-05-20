@@ -482,3 +482,134 @@ plot_q4 <- function(yearlimit) {
       )
     )
 }
+
+
+
+
+
+df_monthly <- readRDS("data/q2b_month.RDS")
+
+df_madrid <- readRDS("data/q2b_madrid.RDS")
+
+pollutants <-  setNames(c(
+  "SO_2", "CO", "NO", "NO_2", "PM25", "PM10", "NOx",
+  "O_3", "TOL", "BEN", "EBE", "MXY", "PXY", "OXY",
+  "TCH", "CH4", "NMHC"
+), c(
+  "sulphur dioxide",
+  "carbon monoxide",
+  "nitric oxide",
+  "nitrogen dioxide",
+  "particles smaller than 2.5 μm",
+  "particles smaller than 10 μm",
+  "nitrous oxides",
+  "ozone",
+  "toluene (methylbenzene)",
+  "benzene",
+  "ethylbenzene",
+  "m-xylene level",
+  "p-xylene",
+  "o-xylene",
+  "total hydrocarbons",
+  "methane level",
+  "non-methane hydrocarbons"
+))
+
+
+panel_plot <- function(df1, df2, x, y, name){
+  
+  pollutant <- data.frame(
+    variable = c(
+      "SO_2", "CO", "NO", "NO_2", "PM25", "PM10", "NOx",
+      "O_3", "TOL", "BEN", "EBE", "MXY", "PXY", "OXY",
+      "TCH", "CH4", "NMHC"
+    ),
+    
+    description = c(
+      "sulphur dioxide",
+      "carbon monoxide",
+      "nitric oxide",
+      "nitrogen dioxide",
+      "particles smaller than 2.5 μm",
+      "particles smaller than 10 μm",
+      "nitrous oxides",
+      "ozone",
+      "toluene (methylbenzene)",
+      "benzene",
+      "ethylbenzene",
+      "m-xylene level",
+      "p-xylene",
+      "o-xylene",
+      "total hydrocarbons",
+      "methane level",
+      "non-methane hydrocarbons"
+    ),
+    
+    unit = c(
+      "μg/m³",
+      "mg/m³",
+      "μg/m³",
+      "μg/m³",    
+      "μg/m³",
+      "μg/m³",
+      "μg/m³",
+      "μg/m³",
+      "μg/m³",
+      "μg/m³",
+      "μg/m³",
+      "μg/m³",
+      "μg/m³",
+      "μg/m³",
+      "mg/m³",
+      "mg/m³",
+      "mg/m³"
+    )
+  )
+  
+  
+  df1|> 
+    ggplot(aes(x = !!sym(x), y = !!sym(y)))+
+    geom_line(data = select(df1, - station), aes(group = station2), color ="grey80", linewidth = .9 )+
+    geom_line(data = df2 , color = "#1a85ff", linewidth = .4, linetype = 5)+
+    geom_text(aes(x = max(date,na.rm = T)-1100, y = max(!!sym(y), na.rm = T), label = str_trunc(name, 15)), 
+              size = 4, color = "grey45", hjust = 0, family = "Lato")+
+    geom_line(aes(group = station), color = "#d41159", linewidth = .5)+  
+    scale_x_date(limits =c(as.Date("2008-01-01"), as.Date("2018-04-01")) )+
+    labs(y = paste0("Average emissions of ", pollutant$description[pollutant$variable == y], " (", pollutant$unit[pollutant$variable == y], ")"), x = "Date")+
+    ggtitle(glue::glue("<b>Montly average air concentration of {pollutant$description[pollutant$variable == y]} in <span style = 'color:#d41159;'> Air Stations </span> compared to <span style = 'color:#1a85ff;'> the Average of the city emissions </span> </b><br>"))+
+    facet_wrap(vars(station), ncol = 4)+
+    theme_minimal(base_family =  "Lato", base_size = 14) +
+    theme(
+      axis.text = element_text(
+        size = 14,
+        color = "grey35",
+        face = "bold",
+        family = "Spline Sans"
+      ),
+      legend.position = "top",
+      strip.text = element_blank(),
+      legend.title = element_blank(),
+      plot.background = element_rect(fill = "#FFFFFF", colour = NA),
+      panel.grid.minor = element_blank(),
+      axis.title = element_text(size = 15, face = "bold"),
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(face = "bold", family = "Playfair Display")
+    )
+}
+
+
+
+
+
+
+plots_q2b <- purrr::map(c(
+  "SO_2", "CO", "NO", "NO_2", "PM25", "PM10", "NOx",
+  "O_3", "TOL", "BEN", "EBE", "MXY", "PXY", "OXY",
+  "TCH", "CH4", "NMHC"),
+  
+  ~panel_plot(df_monthly, df_madrid, x = "date", y = .x , name = "name")
+  
+) |> setNames(nm = c(
+  "SO_2", "CO", "NO", "NO_2", "PM25", "PM10", "NOx",
+  "O_3", "TOL", "BEN", "EBE", "MXY", "PXY", "OXY",
+  "TCH", "CH4", "NMHC"))

@@ -1,3 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.positai
+data/
+fig/
+
 .RData
 .Rhistory
 .Rproj.user/

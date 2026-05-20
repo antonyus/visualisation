@@ -16,7 +16,7 @@ q2_barchart_title <- HTML("
 ")
 
 q2_spaghetti_title <- HTML("
-<h3>Qb. Title</h3>
+<h3>Trends in pollutants air concentrations between 2008 and 2018</h3>
 <br>
 ")
 
@@ -120,10 +120,19 @@ NO₂ concentration, and pollution category associated with the selected year.
 ")
 
 q2_spaghetti_description <- HTML("
-<br>
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-<br>
+<b>Description:</b><br>
+This plot describe the trends in average monthly concentrations of pollutants in different locations of Madrid between 2008 and 2010.<br>
+It helps in monitoring the concentrations of pollutants relative to different locations and the mean of the city. 
+The colors highlight the location specified in the panel title (red), and the blue color shows the mean of the city.<br>
+The vertical postition of lines channels the concentration of the pollutant while the horizontal position the dates.<br> 
+The the vertical position of the line at both ends of the plots indicate the improvement or worsening between w008 and 2010.<br>
+
+<b>How to read the plot:</b><br>
+
+Use the dropdown menu to filter the pollutant to monitor. All of the stations are presented by the grey lines.<br>
+Under each panel, the line specific to the highlighted position is colored in red and the city average in blue.<br>
+
+
 ")
 
 q3a_description <- HTML("
