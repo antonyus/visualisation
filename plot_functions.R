@@ -3,8 +3,25 @@ library(dplyr)
 library(tidyr)
 library(patchwork)
 library(plotly)
+library(leaflet)
+library(viridis)
 
 yearly <- read.csv("yearly_pollution.csv")
+
+fileList <- paste0("VDS2526_Madrid/madrid_", 2001:2018, ".csv")
+
+all_data <- map_dfr(
+  fileList,
+  ~read_csv(.x, show_col_types = FALSE)
+)
+
+all_data <- all_data %>%
+  mutate(
+    date = as.Date(date),
+    year = year(date)
+  )
+
+stations <- read_csv("VDS2526_Madrid/stations.csv",show_col_types = FALSE)
 
 ug_long <- yearly %>%
   select(year, NO, NO_2, NOx, O_3, SO_2, PM10, PM25, OXY) %>%
@@ -64,6 +81,136 @@ plot_q1 <- function(yearlimit){
   
   combined <- p1 + p2
   combined
+}
+
+plot_q2a_data <- function(yearlimit) {
+  q2a_data <- all_data %>%
+    filter(year == yearlimit) %>%
+    group_by(station) %>%
+    summarise(
+      avg_NO2 = mean(NO_2, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    arrange(desc(avg_NO2))
+  
+  no2_breaks <- pretty(q2a_data$avg_NO2, n = 5)
+  
+  pal <- colorBin(
+    palette = rev(cividis(length(no2_breaks) - 1)),
+    domain = q2a_data$avg_NO2,
+    bins = no2_breaks,
+    pretty = FALSE
+  )
+  
+  q2a_data <- q2a_data %>%
+    mutate(
+      pollution_level = cut(
+        avg_NO2,
+        breaks = no2_breaks,
+        include.lowest = TRUE,
+        dig.lab = 5
+      ),
+      pollution_color = pal(avg_NO2)
+    )
+  
+  q2a_map_data <- q2a_data %>%
+    left_join(stations, by = c("station" = "id"))
+  
+  list(
+    q2a_data = q2a_data,
+    q2a_map_data = q2a_map_data,
+    pal = pal
+  )
+}
+
+plot_q2a_hotspot <- function(yearlimit) {
+  q2a <- plot_q2a_data(yearlimit)
+  
+  leaflet(q2a$q2a_map_data) %>%
+    addTiles() %>%
+    addCircleMarkers(
+      lng = ~lon,
+      lat = ~lat,
+      radius = ~avg_NO2 / 3,
+      color = ~pollution_color,
+      fillColor = ~pollution_color,
+      fillOpacity = 0.8,
+      stroke = FALSE,
+      popup = ~paste(
+        "<b>Station:</b>", name,
+        "<br><b>Average NO2:</b>", round(avg_NO2, 2),
+        "<br><b>Category:</b>", pollution_level
+      )
+    ) %>%
+    addLegend(
+      position = "topright",
+      pal = q2a$pal,
+      values = ~avg_NO2,
+      title = "Avg. NO2 (µg/m3)",
+      opacity = 1
+    )
+}
+
+plot_q2a_barchart <- function(yearlimit) {
+  q2a <- plot_q2a_data(yearlimit)
+  
+  plot_ly(
+    data = q2a$q2a_data,
+    x = ~avg_NO2,
+    y = ~reorder(as.character(station), avg_NO2),
+    type = "bar",
+    orientation = "h",
+    color = ~pollution_level,
+    colors = setNames(
+      unique(q2a$q2a_data$pollution_color),
+      unique(q2a$q2a_data$pollution_level)
+    ),
+    hoverinfo = "text",
+    text = ~paste(
+      "Station:", station,
+      "<br>Average NO2:", round(avg_NO2, 2),
+      "<br>Category:", pollution_level
+    )
+  ) %>%
+    layout(
+      title = paste("Average NO2 Levels by Station", yearlimit),
+      xaxis = list(title = "Average NO2"),
+      yaxis = list(title = "Station"),
+      legend = list(
+        title = list(text = "Avg. NO2 (µg/m3)")
+      )
+    )
+}
+
+plot_q2a_barchart <- function(yearlimit) {
+  q2a <- plot_q2a_data(yearlimit)
+  
+  plot_ly(
+    data = q2a$q2a_data,
+    x = ~avg_NO2,
+    y = ~reorder(as.character(station), avg_NO2),
+    type = "bar",
+    orientation = "h",
+    color = ~pollution_level,
+    colors = setNames(
+      unique(q2a$q2a_data$pollution_color),
+      unique(q2a$q2a_data$pollution_level)
+    ),
+    hoverinfo = "text",
+    text = ~paste(
+      "Station:", station,
+      "<br>Average NO2:", round(avg_NO2, 2),
+      "<br>Category:", pollution_level
+    )
+  ) %>%
+    layout(
+      title = paste("Average NO2 Levels by Station", yearlimit),
+      xaxis = list(title = "Average NO2"),
+      yaxis = list(title = "Station"),
+      legend = list(
+        title = list(text = "Avg. NO2 (µg/m3)")
+      )
+    )
 }
 
 
@@ -218,6 +365,120 @@ plot_q3b <- function(){
         width = 900,
         height = 800,
         scale = 2
+      )
+    )
+}
+  
+plot_q4 <- function(yearlimit) {
+  
+  pollutants <- names(all_data)[
+    !(names(all_data) %in% c("date", "year", "station"))
+  ]
+  
+  q4_data <- all_data %>%
+    filter(year == yearlimit) %>%
+    select(year, station, all_of(pollutants)) %>%
+    pivot_longer(
+      cols = all_of(pollutants),
+      names_to = "pollutant",
+      values_to = "value"
+    ) %>%
+    group_by(year, station, pollutant) %>%
+    summarise(
+      avg_value = mean(value, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    filter(!is.na(avg_value)) %>%
+    left_join(
+      stations,
+      by = c("station" = "id")
+    )
+  
+  value_breaks <- pretty(q4_data$avg_value, n = 5)
+  
+  pal_q4 <- colorBin(
+    palette = rev(cividis(length(value_breaks) - 1)),
+    domain = q4_data$avg_value,
+    bins = value_breaks,
+    pretty = FALSE
+  )
+  
+  q4_data <- q4_data %>%
+    mutate(
+      pollution_level = cut(
+        avg_value,
+        breaks = value_breaks,
+        include.lowest = TRUE,
+        dig.lab = 5
+      ),
+      pollution_color = pal_q4(avg_value)
+    )
+  
+  plot_ly(
+    data = q4_data,
+    type = "scattermapbox",
+    mode = "markers",
+    lon = ~lon,
+    lat = ~lat,
+    color = ~pollution_level,
+    colors = setNames(
+      unique(q4_data$pollution_color),
+      unique(q4_data$pollution_level)
+    ),
+    marker = list(
+      size = ~avg_value,
+      opacity = 0.75
+    ),
+    text = ~paste(
+      "Year:", year,
+      "<br>Pollutant:", pollutant,
+      "<br>Station:", name,
+      "<br>Average:", round(avg_value, 2),
+      "<br>Category:", pollution_level
+    ),
+    hoverinfo = "text",
+    transforms = list(
+      list(
+        type = "filter",
+        target = ~pollutant,
+        operation = "=",
+        value = "NO_2"
+      )
+    )
+  ) %>%
+    layout(
+      title = paste("Pollution Hotspots in Madrid,", yearlimit),
+      mapbox = list(
+        style = "open-street-map",
+        height = 600,
+        zoom = 10,
+        center = list(
+          lon = mean(q4_data$lon, na.rm = TRUE),
+          lat = mean(q4_data$lat, na.rm = TRUE)
+        )
+      ),
+      legend = list(
+        title = list(text = "Avg. concentration")
+      ),
+      updatemenus = list(
+        list(
+          type = "dropdown",
+          x = 0,
+          y = 1.15,
+          buttons = lapply(
+            pollutants,
+            function(p) {
+              list(
+                method = "restyle",
+                args = list(
+                  list("transforms[0].value" = p),
+                  0
+                ),
+                label = p
+              )
+            }
+          )
+        )
       )
     )
 }
