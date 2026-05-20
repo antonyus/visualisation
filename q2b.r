@@ -51,10 +51,13 @@ df_monthly <- df |> filter(year >= 2008) |>group_by(year, month, station, name)|
   date = lubridate::make_date(year = year, month = month, day = 1L)
   )
 
-df_madrid <- df_monthly|>  group_by(date)|>
+df_madrid <- df|> filter(year >= 2008) |> group_by(year, month)|>
   summarise(across(c("BEN", "CO", "EBE", "MXY", "NMHC", "NO_2", "NOx", "OXY", 
 "O_3", "PM10", "PXY", "SO_2", "TCH", "TOL", "PM25", 
-"NO", "CH4"), ~mean(.x, na.rm = T)), .groups = "drop")
+"NO", "CH4"), ~mean(.x, na.rm = T)), .groups = "drop")|>
+  mutate(
+  date = lubridate::make_date(year = year, month = month, day = 1L)
+  )
 
 
 
@@ -117,28 +120,27 @@ panel_plot <- function(df1, df2, x, y, name){
   ggplot(aes(x = !!sym(x), y = !!sym(y)))+
   geom_line(data = select(df1, - station), aes(group = station2), color ="grey80", linewidth = .9 )+
   geom_line(data = df2 , color = "#1a85ff", linewidth = .4, linetype = 5)+
-  geom_text(aes(x = max(date,na.rm = T)-1300, y = max(!!sym(y), na.rm = T)+1, label = str_trunc(name, 15)), 
+  geom_text(aes(x = max(date,na.rm = T)-1100, y = max(!!sym(y), na.rm = T), label = str_trunc(name, 15)), 
   size = 4, color = "grey45", hjust = 0, fontfamily = "Lato")+
   geom_line(aes(group = station), color = "#d41159", linewidth = .5)+  
   scale_x_date(limits =c(as.Date("2008-01-01"), as.Date("2018-04-01")) )+
-  labs(y = paste0("Emissions of ", pollutant$description[pollutant$variable == y], " (", pollutant$unit[pollutant$variable == y], ")"))+
-    ggtitle(glue::glue("<b>Montly mean air concentration of {pollutant$description[pollutant$variable == y]} in <span style = 'color:#d41159;'> areas of Madrid </span> compared to <span style = 'color:#1a85ff;'> the mean city emissions </span> </b><br>"))+
-  facet_wrap(vars(station), ncol = 5)+
+  labs(y = paste0("Average emissions of ", pollutant$description[pollutant$variable == y], " (", pollutant$unit[pollutant$variable == y], ")"), x = "Date")+
+    ggtitle(glue::glue("<b>Montly average air concentration of {pollutant$description[pollutant$variable == y]} in <span style = 'color:#d41159;'> Air Stations </span> compared to <span style = 'color:#1a85ff;'> the Average of the city emissions </span> </b><br>"))+
+  facet_wrap(vars(station), ncol = 4)+
       theme_minimal(base_family =  "Lato", base_size = 14) +
     theme(
-      axis.text.x = element_text(
-        size = 10,
-        color = "#111111",
-        face = "bold"
+      axis.text = element_text(
+        size = 14,
+        color = "grey35",
+        face = "bold",
+        family = "Spline Sans"
       ),
       legend.position = "top",
       strip.text = element_blank(),
       legend.title = element_blank(),
       plot.background = element_rect(fill = "#FFFFFF", colour = NA),
       panel.grid.minor = element_blank(),
-      panel.grid.major.y = element_blank(),
-      panel.grid.major.x = element_blank(),
-      axis.title.x = element_blank(),
+      axis.title = element_text(size = 15, face = "bold"),
       plot.title.position = "plot",
       plot.title = ggtext::element_textbox_simple(face = "bold", family = "Playfair Display")
     )
