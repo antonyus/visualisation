@@ -2,7 +2,7 @@ library(shiny)
 source("plot_functions.R")
 source("plot_descriptions.R")
 
-ui <- fluidPage((titlePanel("Group 22 visualization")),
+ui <- fluidPage((titlePanel("Group 5 visualization")),
                 sidebarLayout(
                   sidebarPanel(
                     sliderInput("years",
@@ -40,7 +40,19 @@ ui <- fluidPage((titlePanel("Group 22 visualization")),
                       tabPanel(
                         "Q4",
                         q4_title,
+                        
+                        selectInput(
+                          inputId = "q4_pollutant",
+                          label = "Pollutant:",
+                          choices = c(
+                            "BEN", "CO", "EBE", "MXY", "NMHC", "NO_2", "NOx", "OXY",
+                            "O_3", "PM10", "PXY", "SO_2", "TCH", "TOL", "PM25", "NO", "CH4"
+                          ),
+                          selected = "NO_2"
+                        ),
+                        
                         plotlyOutput("q4", height = "600px"),
+                        
                         q4_description
                       )
                     )
@@ -66,7 +78,7 @@ server <- function(input, output){
     plot_q3b()
   })
   output$q4 <- renderPlotly({
-    plot_q4(input$years)
+    plot_q4(input$years, input$q4_pollutant)
   })
 }
 
