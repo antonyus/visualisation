@@ -243,8 +243,7 @@ plot_q3a <- function(base_year = 2001, max_year=2018) {
 }
 
 plot_q3b <- function(){
-  corr_data <- yearly %>%
-    select(!X,!year)
+  corr_data <- all_data %>% select(-any_of(c("X", "year", "date", "station"))) %>% select(where(is.numeric))
   
   corr_matrix <- cor(
     corr_data,
@@ -287,7 +286,11 @@ plot_q3b <- function(){
     add_annotations(
       x = rep(colnames(corr_masked), each = nrow(corr_masked)),
       y = rep(rownames(corr_masked), times = ncol(corr_masked)),
-      text = sprintf("%.2f", as.vector(corr_masked)),
+      text = matrix(
+        ifelse(is.na(corr_masked), "", sprintf("%.2f", corr_masked)),
+        nrow = nrow(corr_masked),
+        dimnames = list(rownames(corr_masked), colnames(corr_masked))
+      ),
       showarrow = FALSE,
       font = list(size = 10, color = "black"),
       xref = "x",
