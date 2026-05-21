@@ -56,11 +56,10 @@ over the 17-year period remain clearly visible.
 The X-axis represents the year, while the Y-axis shows the average pollutant concentration.  
 Each colored line corresponds to a specific pollutant, and the data points represent the yearly average 
 value for that pollutant. Hovering over the points reveals the exact values for each year.
-<br>
+<br><br>
 ")
 
 q2_hotspot_description <- HTML("
-<br>
 
 <b>Description:</b><br>
 
@@ -88,7 +87,7 @@ and pollution category for the selected year.
 
 The legend updates dynamically based on the concentration values observed in the selected
 year, allowing the color categories to adapt to changes in pollutant distribution over time.
-
+<br><br>
 ")
 
 q2_barchart_description <- HTML("
@@ -116,6 +115,7 @@ measured at that location.
 
 Hovering over a bar displays additional information, including the station name, average
 NO₂ concentration, and pollution category associated with the selected year.
+<br><br>
 
 ")
 
@@ -129,7 +129,6 @@ The vertical postition of lines channels the concentration of the pollutant whil
 
 Use the dropdown menu to filter the pollutant to monitor. All of the stations are presented by the grey lines.<br>
 Under each panel, the line specific to the highlighted position is colored in red and the city average in blue.<br>
-
 
 ")
 
@@ -154,7 +153,7 @@ The X-axis represents the year, while the Y-axis shows the relative pollutant co
 Each colored line represents a specific pollutant and illustrates how its concentration changed between 2001 and 2018. 
 For example, TCH remained relatively stable over time, staying close to the 100% baseline, 
 while most other pollutants show a significant decrease throughout the observed period.
-<br>
+<br><br>
 ")
 
 q3b_description <- HTML("
@@ -180,7 +179,7 @@ Because the correlation matrix is symmetric, only the lower half of the heatmap 
 The main diagonal contains only values equal to 1.00, since every pollutant is perfectly correlated with itself. 
 Each remaining tile represents the Pearson correlation coefficient between two pollutants over the 2001–2018 period. 
 The numerical value displayed inside each tile indicates the strength and direction of the correlation.
-<br>
+<br><br>
 ")
 
 q4_description <- HTML("
@@ -213,4 +212,5 @@ Each marker corresponds to a monitoring station location. Hovering over a marker
 additional information, including the selected pollutant, station name, average
 concentration value, and dynamically assigned pollution category for the selected year.
 
+<br><br>
 ")

@@ -21,7 +21,7 @@ ui <- page_navbar(
     title = "Evolution of Pollution",
     card(
       card_header(q1_title),
-      withSpinner(plotOutput("q1")),
+      withSpinner(plotlyOutput("q1")),
       q1_description
     )
   ),
@@ -65,13 +65,20 @@ ui <- page_navbar(
     title = "Pollution Hotspots",
     card(
       card_header(q4_title),
+      selectInput(
+        inputId = "q4_pollutant",
+        label = "Pollutant:",
+        choices = c(
+          "BEN", "CO", "EBE", "MXY", "NMHC", "NO_2", "NOx", "OXY",
+          "O_3", "PM10", "PXY", "SO_2", "TCH", "TOL", "PM25", "NO", "CH4"
+        )),
       withSpinner(plotlyOutput("q4", height = "600px")),
     )
-  )
-)
+  ))
+
 
 server <- function(input, output){
-  output$q1 <- renderPlot({
+  output$q1 <- renderPlotly({
     plot_q1(input$years)
   })
   output$q2a_hotspot <- renderLeaflet({
@@ -88,7 +95,7 @@ server <- function(input, output){
     plot_q3b()
   })
   output$q4 <- renderPlotly({
-    plot_q4(input$years)
+    plot_q4(input$years, input$q4_pollutant)
   })
   
   output$q2b <- renderPlot(
