@@ -479,9 +479,9 @@ plot_q4 <- function(yearlimit, selected_pollutant) {
 
 
 
-df_monthly <- readRDS("data/q2b_month.RDS")
+df_monthly <- readRDS("VDS2526_Madrid/q2b_month.RDS")
 
-df_madrid <- readRDS("data/q2b_madrid.RDS")
+df_madrid <- readRDS("VDS2526_Madrid/q2b_madrid.RDS")
 
 pollutants <-  setNames(c(
   "SO_2", "CO", "NO", "NO_2", "PM25", "PM10", "NOx",
