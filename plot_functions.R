@@ -52,12 +52,13 @@ mg_long$pollutant <- factor(mg_long$pollutant, levels = mg_order)
 
 plot_q1 <- function(yearlimit){
   
-  ug_long_filtered <- ug_long %>% filter(year <= yearlimit)
-  mg_long_filtered <- mg_long %>% filter(year <= yearlimit)
+  ug_long_filtered <- ug_long %>% filter(year <= yearlimit)#|> mutate(year = integer(year))
+  mg_long_filtered <- mg_long %>% filter(year <= yearlimit)#|> mutate(year = integer(year))
   
   p1 <- ggplot(ug_long_filtered, aes(x = year, y = concentration, colour = pollutant)) +
     geom_line(linewidth = 1.2) + geom_point(size = 2) +
     labs(x = "year", y = "Concentration (µg/m³)", colour = NULL) +
+    scale_x_continuous(breaks = scales::pretty_breaks(10))+
     theme_minimal(base_size = 14) +
     theme(
       plot.title = element_text(face = "bold"),
@@ -67,6 +68,7 @@ plot_q1 <- function(yearlimit){
   p2 <- ggplot(mg_long_filtered, aes(x = year, y = concentration, colour = pollutant)) +
     geom_line(linewidth = 1.2) + geom_point(size = 2) +
     labs(x = "year", y = "Concentration (mg/m³)", colour = NULL) +
+    scale_x_continuous(breaks = scales::pretty_breaks(10))+
     theme_minimal(base_size = 14) +
     theme(
       plot.title = element_text(face = "bold"),
@@ -120,7 +122,8 @@ plot_q2a_hotspot <- function(yearlimit) {
   q2a <- plot_q2a_data(yearlimit)
   
   leaflet(q2a$q2a_map_data) %>%
-    addTiles() %>%
+    addProviderTiles(providers$CartoDB.Positron)%>%
+    # addTiles() %>%
     addCircleMarkers(
       lng = ~lon,
       lat = ~lat,
@@ -330,7 +333,7 @@ plot_q3b <- function(){
       )
     )
 }
-  
+
 plot_q4 <- function(yearlimit, selected_pollutant) {
   
   pollutants <- names(all_data)[
@@ -371,7 +374,7 @@ plot_q4 <- function(yearlimit, selected_pollutant) {
           title = paste("Pollution Hotspots in Madrid,", yearlimit),
           
           mapbox = list(
-            style = "open-street-map",
+            style = 'carto-positron',
             zoom = 10,
             center = list(
               lon = -3.7038,
@@ -463,7 +466,7 @@ plot_q4 <- function(yearlimit, selected_pollutant) {
     layout(
       title = paste("Pollution Hotspots in Madrid,", yearlimit),
       mapbox = list(
-        style = "open-street-map",
+        style = "carto-positron",
         zoom = 10,
         center = list(
           lon = mean(q4_data$lon, na.rm = TRUE),
@@ -605,3 +608,4 @@ plots_q2b <- purrr::map(c(
   "SO_2", "CO", "NO", "NO_2", "PM25", "PM10", "NOx",
   "O_3", "TOL", "BEN", "EBE", "MXY", "PXY", "OXY",
   "TCH", "CH4", "NMHC"))
+

@@ -6,7 +6,8 @@ source("plot_functions.R")
 source("plot_descriptions.R")
 
 ui <- page_navbar(
-  title = "Madrid Air Quality Monitor",
+  theme = bs_theme(bootswatch = "minty" ,  base_font = font_google("Inter"), heading_font = font_google("DM Sans")),
+  title = h1("Madrid Air Quality Monitor"),
   sidebar = sidebar(
     title = "Inputs",
     sliderInput("years",
@@ -14,8 +15,11 @@ ui <- page_navbar(
                 min = 2001L,
                 max = 2018L,
                 value = 2010,
+                round = T, 
+                ticks = T,
+                
                 step = 1L,
-                animate = TRUE)
+                animate = animationOptions(interval = 8 * 1000, loop = TRUE))
   ),nav_spacer(),
   nav_panel(
     title = "Evolution of Pollution",
@@ -29,20 +33,20 @@ ui <- page_navbar(
     title = "Polluted Areas",
     
     card(min_height = "1000px",
-      card_header(q2_hotspot_title),
-      withSpinner(leafletOutput("q2a_hotspot")),
-      q2_hotspot_description
+         card_header(q2_hotspot_title),
+         withSpinner(leafletOutput("q2a_hotspot")),
+         q2_hotspot_description
     ),
     card(min_height = "1000px",
-      card_header(q2_barchart_title),
-      withSpinner(plotlyOutput("q2a_barchart")),
-      q2_hotspot_description
+         card_header(q2_barchart_title),
+         withSpinner(plotlyOutput("q2a_barchart")),
+         q2_hotspot_description
     ),
     card(min_height = "1550px",
-      card_header(q2_spaghetti_title),
-      selectInput("pollutant", "Select a pollutant", choices = pollutants),
-      withSpinner(plotOutput("q2b", height = "1000px")),
-      q2_spaghetti_description
+         card_header(q2_spaghetti_title),
+         selectInput("pollutant", "Select a pollutant", choices = pollutants),
+         withSpinner(plotOutput("q2b", height = "1000px")),
+         q2_spaghetti_description
     )
     
   ),
@@ -50,14 +54,14 @@ ui <- page_navbar(
     title = "Pollutant Evolution",
     
     card(min_height = "1000px",
-      card_header(q3a_title),
-      withSpinner(plotlyOutput("q3a")),
-      q3a_description
+         card_header(q3a_title),
+         withSpinner(plotlyOutput("q3a", width = "100%")),
+         q3a_description
     ),
     card(min_height = "1000px",
-      card_header(q3b_title),
-      withSpinner(plotlyOutput("q3b")),
-      q3b_description
+         card_header(q3b_title),
+         withSpinner(plotlyOutput("q3b", width = "100%")),
+         q3b_description
     )
     
   ),
@@ -73,6 +77,8 @@ ui <- page_navbar(
           "O_3", "PM10", "PXY", "SO_2", "TCH", "TOL", "PM25", "NO", "CH4"
         )),
       withSpinner(plotlyOutput("q4", height = "600px")),
+      
+      q4_description
     )
   ))
 
