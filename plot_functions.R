@@ -243,7 +243,7 @@ plot_q3a <- function(base_year = 2001, max_year=2018) {
 }
 
 plot_q3b <- function(){
-  corr_data <- all_data %>% select(-any_of(c("X", "year", "date", "station"))) %>% select(where(is.numeric))
+  corr_data <- yearly %>% select(-any_of(c("X", "year", "date", "station"))) %>% select(where(is.numeric))
   
   corr_matrix <- cor(
     corr_data,
