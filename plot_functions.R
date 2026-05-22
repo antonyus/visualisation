@@ -483,11 +483,16 @@ plot_q4 <- function(yearlimit, selected_pollutant) {
 }
 
 
+## Code of the trend monitoring plot between 2008-2028
+
+#-----Refer to script q2b for data wrangling of the datasets here-----
 
 
 df_monthly <- readRDS("VDS2526_Madrid/q2b_month.RDS")
 
 df_madrid <- readRDS("VDS2526_Madrid/q2b_madrid.RDS")
+
+# A name vector for the dropdowmn menu
 
 pollutants <-  setNames(c(
   "SO_2", "CO", "NO", "NO_2", "PM25", "PM10", "NOx",
@@ -513,6 +518,9 @@ pollutants <-  setNames(c(
   "non-methane hydrocarbons"
 ))
 
+
+## This function accepts two data frames and 03 aesthetic x: date, y: concentration
+## name for the facetting 
 
 panel_plot <- function(df1, df2, x, y, name){
   
@@ -566,17 +574,17 @@ panel_plot <- function(df1, df2, x, y, name){
   
   
   df1|> 
-    ggplot(aes(x = !!sym(x), y = !!sym(y)))+
-    geom_line(data = select(df1, - station), aes(group = station2), color ="grey80", linewidth = .9 )+
-    geom_line(data = df2 , color = "#1a85ff", linewidth = .4, linetype = 5)+
-    geom_text(aes(x = max(date,na.rm = T)-1100, y = max(!!sym(y), na.rm = T), label = str_trunc(name, 15)), 
+    ggplot(aes(x = !!sym(x), y = !!sym(y)))+ # We declare the x and y aesthetics that will be used to highlight data
+    geom_line(data = select(df1, - station), aes(group = station2), color ="grey80", linewidth = .9 )+ # Here we plot all the lines in  grey than will appear as a background on each panel
+    geom_line(data = df2 , color = "#1a85ff", linewidth = .4, linetype = 5)+ # Here we plot in blue the line of the average monthly emissions on all the panels
+    geom_text(aes(x = max(date,na.rm = T)-1100, y = max(!!sym(y), na.rm = T), label = str_trunc(name, 15)), # We add the names of the stations on each panel
               size = 4, color = "grey45", hjust = 0, family = "Lato")+
-    geom_line(aes(group = station), color = "#d41159", linewidth = .5)+  
-    scale_x_date(limits =c(as.Date("2008-01-01"), as.Date("2018-04-01")) )+
-    labs(y = paste0("Average emissions of ", pollutant$description[pollutant$variable == y], " (", pollutant$unit[pollutant$variable == y], ")"), x = "Date")+
+    geom_line(aes(group = station), color = "#d41159", linewidth = .5)+  # This code adds the highlighted line of the station corresponding to the facetted panel
+    scale_x_date(limits =c(as.Date("2008-01-01"), as.Date("2018-04-01")) )+ # Limiting the data within the date range collected 
+    labs(y = paste0("Average emissions of ", pollutant$description[pollutant$variable == y], " (", pollutant$unit[pollutant$variable == y], ")"), x = "Date")+ # labels, with some html to label the title
     ggtitle(glue::glue("<b>Montly average air concentration of {pollutant$description[pollutant$variable == y]} in <span style = 'color:#d41159;'> Air Stations </span> compared to <span style = 'color:#1a85ff;'> the Average of the city emissions </span> </b><br>"))+
-    facet_wrap(vars(station), ncol = 4)+
-    theme_minimal(base_family =  "Lato", base_size = 14) +
+    facet_wrap(vars(station), ncol = 4)+ # Facetting the plot per station
+    theme_minimal(base_family =  "Lato", base_size = 14) +# Adding some theme
     theme(
       axis.text = element_text(
         size = 14,
@@ -598,7 +606,7 @@ panel_plot <- function(df1, df2, x, y, name){
 
 
 
-
+# using functionnal propgramming to produce a plot for each corresponding pollutant
 
 plots_q2b <- purrr::map(c(
   "SO_2", "CO", "NO", "NO_2", "PM25", "PM10", "NOx",

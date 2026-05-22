@@ -1,11 +1,13 @@
-
+######################################################################
+# Instructions to wrangle data for the location trend monitoring plot#
+######################################################################
 library(dplyr)
 library(ggplot2)
 library(gganimate)
 library(tidyr)
 library(stringr)
 
-
+# Loading the data files and merging them into one filr
 files <- file.path("VDS2526_Madrid",list.files("VDS2526_Madrid/")[-length(list.files("VDS2526_Madrid/"))])
 
 df <- plyr::rbind.fill(Map(read.csv, files))
@@ -33,7 +35,7 @@ stations <- read.csv(file.path("data", "stations.csv"))
 
 
 
-
+# Adding labels to stations and creating a month variable
 
 df <- inner_join(df, stations, by = join_by(station == id))
 
@@ -42,7 +44,8 @@ df <- df |> transform(date = as.Date(date))|>
             month = factor(format.Date(date, format = "%m"), labels = month.abb)
 )
 
-
+# Filtering station to remain with those between 2008 and 2018. 
+# We compute the average of each pollutant for each month and station
 
 df_monthly <- df |> filter(year >= 2008) |>group_by(year, month, station, name)|> 
   summarise(across(c("BEN", "CO", "EBE", "MXY", "NMHC", "NO_2", "NOx", "OXY", 
@@ -51,6 +54,7 @@ df_monthly <- df |> filter(year >= 2008) |>group_by(year, month, station, name)|
   mutate(station2 = station,
   date = lubridate::make_date(year = year, month = month, day = 1L)
   )
+# Compute the average pollutant concentration for each pollutant and each month
 
 df_madrid <- df|> filter(year >= 2008) |> group_by(year, month)|>
   summarise(across(c("BEN", "CO", "EBE", "MXY", "NMHC", "NO_2", "NOx", "OXY", 
@@ -60,7 +64,7 @@ df_madrid <- df|> filter(year >= 2008) |> group_by(year, month)|>
   date = lubridate::make_date(year = year, month = month, day = 1L)
   )
 
-
+#-------------------This part is described in the plot function script------------ 
 df_monthly <- readRDS("data/q2b_month.RDS")
 
 df_madrid <- readRDS("data/q2b_madrid.RDS")
