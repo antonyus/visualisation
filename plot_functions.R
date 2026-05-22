@@ -513,7 +513,7 @@ plot_q4 <- function(yearlimit, selected_pollutant) {
       )
   }
   
-  #final layoutgit 
+  #final layout 
   p %>%
     layout(
       title = paste("Pollution Hotspots in Madrid,", yearlimit),
