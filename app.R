@@ -19,7 +19,7 @@ ui <- page_navbar(
                 ticks = T,
                 
                 step = 1L,
-                animate = animationOptions(interval = 8 * 1000, loop = TRUE))
+                animate = animationOptions(interval = 4 * 1000, loop = TRUE))
   ),nav_spacer(),
   nav_panel(
     title = "Evolution of Pollution",

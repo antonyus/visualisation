@@ -363,9 +363,7 @@ plot_q4 <- function(yearlimit, selected_pollutant) {
       by = c("station" = "id")
     )
   
-  # If the selected pollutant/year has no valid data
   if (nrow(q4_data) == 0) {
-    
     return(
       plot_ly(
         type = "scattermapbox",
@@ -375,16 +373,14 @@ plot_q4 <- function(yearlimit, selected_pollutant) {
       ) %>%
         layout(
           title = paste("Pollution Hotspots in Madrid,", yearlimit),
-          
           mapbox = list(
-            style = 'carto-positron',
+            style = "carto-positron",
             zoom = 10,
             center = list(
               lon = -3.7038,
               lat = 40.4168
             )
           ),
-          
           annotations = list(
             list(
               text = paste(
@@ -398,12 +394,10 @@ plot_q4 <- function(yearlimit, selected_pollutant) {
               xref = "paper",
               yref = "paper",
               showarrow = FALSE,
-              
               font = list(
                 size = 20,
                 color = "black"
               ),
-              
               bgcolor = "rgba(255,255,255,0.85)",
               bordercolor = "black",
               borderwidth = 1,
@@ -416,7 +410,6 @@ plot_q4 <- function(yearlimit, selected_pollutant) {
   
   value_breaks <- pretty(q4_data$avg_value, n = 5)
   
-  # If breaks fail or there is only one unique value, create a small range manually
   if (length(value_breaks) < 2 || length(unique(q4_data$avg_value)) < 2) {
     single_value <- unique(q4_data$avg_value)[1]
     value_breaks <- c(single_value - 0.01, single_value + 0.01)
@@ -437,22 +430,23 @@ plot_q4 <- function(yearlimit, selected_pollutant) {
         include.lowest = TRUE,
         dig.lab = 5
       ),
-      pollution_color = pal_q4(avg_value)
+      pollution_color = pal_q4(avg_value),
+      marker_size = scales::rescale(avg_value, to = c(15, 60))
     )
   
-  plot_ly(
+  legend_data <- q4_data %>%
+    distinct(pollution_level, pollution_color) %>%
+    arrange(pollution_level)
+  
+  p <- plot_ly(
     data = q4_data,
     type = "scattermapbox",
     mode = "markers",
     lon = ~lon,
     lat = ~lat,
-    color = ~pollution_level,
-    colors = setNames(
-      unique(q4_data$pollution_color),
-      unique(q4_data$pollution_level)
-    ),
     marker = list(
-      size = ~scales::rescale(avg_value, to = c(15, 60)),
+      color = q4_data$pollution_color,
+      size = q4_data$marker_size,
       opacity = 0.90
     ),
     text = ~paste(
@@ -464,8 +458,29 @@ plot_q4 <- function(yearlimit, selected_pollutant) {
       "<br>Average:", round(avg_value, 2),
       "<br>Category:", pollution_level
     ),
-    hoverinfo = "text"
-  ) %>%
+    hoverinfo = "text",
+    showlegend = FALSE
+  )
+  
+  for (i in seq_len(nrow(legend_data))) {
+    p <- p %>%
+      add_trace(
+        type = "scattermapbox",
+        mode = "markers",
+        lon = NA,
+        lat = NA,
+        marker = list(
+          size = 15,
+          color = legend_data$pollution_color[i],
+          opacity = 0.90
+        ),
+        name = as.character(legend_data$pollution_level[i]),
+        showlegend = TRUE,
+        inherit = FALSE
+      )
+  }
+  
+  p %>%
     layout(
       title = paste("Pollution Hotspots in Madrid,", yearlimit),
       mapbox = list(
@@ -477,11 +492,12 @@ plot_q4 <- function(yearlimit, selected_pollutant) {
         )
       ),
       legend = list(
-        title = list(text = "Avg. concentration")
+        title = list(
+          text = "Avg. concentration"
+        )
       )
     )
 }
-
 
 ## Code of the trend monitoring plot between 2008-2028
 
