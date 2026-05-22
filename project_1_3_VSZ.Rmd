@@ -30,11 +30,13 @@ library(dplyr)
 library(tidyr)
 library(patchwork)
 
+# Aggregate data by year and calculate mean concentrations
 yearly <- all_data %>%
   mutate(year = as.integer(format(as.Date(date), "%Y"))) %>%
   group_by(year) %>%
   summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)), .groups = "drop")
 
+# pivot to long format for plotting
 ug_long <- yearly %>%
   select(year, NO, NO_2, NOx, O_3, SO_2, PM10, PM25, OXY) %>%
   pivot_longer(-year, names_to = "pollutant", values_to = "concentration") %>%
@@ -59,6 +61,7 @@ mg_order <- mg_long %>%
   pull(pollutant)
 mg_long$pollutant <- factor(mg_long$pollutant, levels = mg_order)
 
+# Plotting different pollutants in two separate plots based on units
 p1 <- ggplot(ug_long, aes(x = year, y = concentration, colour = pollutant)) +
   geom_line() + geom_point() +
   labs(x = "year", y = "Concentration (µg/m³)", colour = NULL) +
@@ -69,14 +72,18 @@ p2 <- ggplot(mg_long, aes(x = year, y = concentration, colour = pollutant)) +
   labs(x = "year", y = "Concentration (mg/m³)", colour = NULL) +
   theme_classic()
 
+# Combine the two plots side by side
 combined <- p1 + p2
 combined
+
+# Save the combined plot
 ggsave("pollution_plots.png", combined, width = 14, height = 5)
 ```
 
 # 3a
 
 ```{r}
+# Calculate percentage change from the first year for each pollutant
 ug_long <- ug_long %>%
   group_by(pollutant) %>%
   mutate(concentration_change = concentration / concentration[year == min(year)] * 100) %>%
@@ -87,6 +94,7 @@ mg_long <- mg_long %>%
   mutate(concentration_change = concentration / concentration[year == min(year)] * 100) %>%
   ungroup()
 
+# Reorder pollutants based on the latest year's concentration change
 ug_order <- ug_long %>%
   group_by(pollutant) %>%
   filter(year == max(year)) %>%
@@ -101,6 +109,7 @@ mg_order <- mg_long %>%
   pull(pollutant)
 mg_long$pollutant <- factor(mg_long$pollutant, levels = mg_order)
 
+# plot the percentage change for each pollutant in two separate plots based on units
 p1 <- ggplot(ug_long, aes(x = year, y = concentration_change, colour = pollutant)) +
   geom_line() + geom_point() +
   labs(x = "year", y = "Concentration (µg/m³)", colour = NULL) +
@@ -111,8 +120,10 @@ p2 <- ggplot(mg_long, aes(x = year, y = concentration_change, colour = pollutant
   labs(x = "year", y = "Concentration (mg/m³)", colour = NULL) +
   theme_classic()
 
+# Combine the two plots side by side
 combined <- p1 + p2
 combined
+# Save the combined plot
 ggsave("pollution_change_plots.png", combined, width = 14, height = 5)
 ```
 
@@ -122,17 +133,21 @@ ggsave("pollution_change_plots.png", combined, width = 14, height = 5)
 library(ggplot2)
 library(dplyr)
 
+# Calculate the correlation matrix for the pollutants
 cor_matrix <- all_data %>%
   select(BEN, CO, EBE, MXY, NMHC, NO_2, NOx, OXY, O_3, PM10, PXY, SO_2, TCH, TOL, PM25, NO, CH4) %>%
   cor(use = "pairwise.complete.obs")
 
+# Convert the correlation matrix to a long format for plotting
 cor_long <- as.data.frame(as.table(cor_matrix))
 cor_long <- cor_long[as.integer(cor_long$Var1) < as.integer(cor_long$Var2), ]
 
+# Create a correlation plot using ggplot2
 corplot <- ggplot(cor_long, aes(x = Var2, y = Var1, fill = Freq)) +
   geom_tile() +
   scale_x_discrete(limits = rev) + theme_classic()
 
+# Show and save the correlation plot
 corplot
 ggsave("Correlation_plot.png", corplot)
 ```
