@@ -11,6 +11,7 @@ library(htmlwidgets)
 # Load and prepare data
 # ---------------------------------------------------------
 load_pollution_data <- function(path) {
+    # List of pollutant columns used across all plots.
     pollutants <- c(
         "NMHC", "CH4", "CO", "SO_2", "NO",
         "NO_2", "PM25", "NOx", "O_3", "TOL",
@@ -18,12 +19,15 @@ load_pollution_data <- function(path) {
         "TCH", "PM10"
     )
 
+    # Select only Madrid CSV files from years 2001–2018.
     files <- list.files(
         path,
         pattern = "^madrid_(200[1-9]|201[0-8])\\.csv$",
         full.names = TRUE
     )
 
+    # Read all selected files into one data frame and extract the year
+    # from the date column for later yearly aggregation.
     df <- files %>%
         map_dfr(read_csv, show_col_types = FALSE) %>%
         mutate(
@@ -31,6 +35,7 @@ load_pollution_data <- function(path) {
             year = year(date)
         )
 
+    # Return both the prepared data and pollutant list so they can be reused.
     list(df = df, pollutants = pollutants)
 }
 
@@ -38,6 +43,8 @@ load_pollution_data <- function(path) {
 # Function 1: Yearly averages by pollutant groups
 # =========================================================
 plot_yearly_averages <- function(df, pollutants) {
+    # Calculate the yearly mean for every pollutant, then convert the data
+    # from wide format to long format so Plotly can draw one line per pollutant.
     yearly_avg <- df %>%
         group_by(year) %>%
         summarise(
@@ -49,9 +56,11 @@ plot_yearly_averages <- function(df, pollutants) {
             names_to = "pollutant",
             values_to = "value"
         ) %>%
+        # Replace NaN values caused by fully missing years/pollutants.
         mutate(value = ifelse(is.nan(value), NA, value)) %>%
         drop_na()
 
+    # Pollutants are split into groups because they use different units/scales.
     group1 <- c("NMHC", "CH4", "CO")
     group2 <- c(
         "SO_2", "NO", "NO_2", "PM10", "PM25", "NOx", "O_3",
@@ -60,6 +69,7 @@ plot_yearly_averages <- function(df, pollutants) {
 
     all_pollutants <- c(group1, group2)
 
+    # Custom colour palette for consistent pollutant colours across traces.
     palette_vals <- c(
         "#3266ad", "#d85a30", "#1d9e75", "#c94b8e", "#73726c",
         "#ba7517", "#534ab7", "#185fa5", "#993c1d", "#0f6e56",
@@ -69,9 +79,11 @@ plot_yearly_averages <- function(df, pollutants) {
 
     color_map <- setNames(palette_vals[seq_along(all_pollutants)], all_pollutants)
 
+    # Helper function that creates one line chart for a selected pollutant group.
     make_group_plot <- function(data, pollutant_group, y_title) {
         p <- plot_ly()
 
+        # Add a separate trace for each pollutant in the group.
         for (pol in pollutant_group) {
             d <- data %>% filter(pollutant == pol)
 
@@ -85,6 +97,7 @@ plot_yearly_averages <- function(df, pollutants) {
                 line = list(color = color_map[pol], width = 2),
                 marker = list(color = color_map[pol], size = 6),
                 legendgroup = pol,
+                # Custom hover text makes the interactive chart easier to read.
                 hovertemplate = paste0(
                     "<b>", pol, "</b><br>",
                     "Year: %{x}<br>",
@@ -97,10 +110,11 @@ plot_yearly_averages <- function(df, pollutants) {
         p
     }
 
+    # Create two subplots with different y-axis units.
     p1 <- make_group_plot(yearly_avg, group1, "mg/m³")
     p2 <- make_group_plot(yearly_avg, group2, "µg/m³")
-    # p3 <- make_group_plot(yearly_avg, group3, "") # TODO: decide about the scale
 
+    # Combine both plots into one interactive figure.
     subplot(
         p1, p2,
         nrows = 1,
@@ -128,11 +142,11 @@ plot_yearly_averages <- function(df, pollutants) {
             xaxis3 = list(title = "Year", tickangle = -45, dtick = 1, tickfont = list(size = 9)),
             yaxis = list(title = "mg/m³"),
             yaxis2 = list(title = "µg/m³"),
-            # yaxis3 = list(title = ""), # TODO: decide about the scale
             paper_bgcolor = "white",
             plot_bgcolor = "white",
             font = list(family = "Arial, sans-serif")
         ) %>%
+        # Keep useful export options and remove unnecessary selection tools.
         config(
             displayModeBar = TRUE,
             modeBarButtonsToRemove = c("select2d", "lasso2d"),
@@ -150,6 +164,8 @@ plot_yearly_averages <- function(df, pollutants) {
 # Function 2: Relative change plot
 # =========================================================
 plot_relative_change <- function(df, pollutants, base_year = 2001) {
+    # First calculate yearly averages, because relative change is compared
+    # year by year rather than from raw daily/hourly observations.
     yearly_avg <- df %>%
         group_by(year) %>%
         summarise(
@@ -165,10 +181,13 @@ plot_relative_change <- function(df, pollutants, base_year = 2001) {
         ) %>%
         group_by(pollutant) %>%
         mutate(
+            # Base value is the concentration in the selected base year.
             base_value = value[year == base_year][1],
+            # 100% means no change compared with the base year.
             relative_change = (value / base_value) * 100
         ) %>%
         ungroup() %>%
+        # Remove invalid results caused by missing or zero base values.
         filter(
             !is.na(relative_change),
             !is.nan(relative_change),
@@ -189,6 +208,7 @@ plot_relative_change <- function(df, pollutants, base_year = 2001) {
             )
         )
     ) +
+        # Reference line showing the base year level.
         geom_hline(
             yintercept = 100,
             linetype = "dashed",
@@ -216,6 +236,7 @@ plot_relative_change <- function(df, pollutants, base_year = 2001) {
             panel.grid.minor = element_blank()
         )
 
+    # Convert ggplot into an interactive Plotly chart with custom tooltip text.
     ggplotly(p_relative, tooltip = "text")
 }
 
@@ -223,6 +244,7 @@ plot_relative_change <- function(df, pollutants, base_year = 2001) {
 # Function 3: Correlation heatmap
 # =========================================================
 plot_correlation_heatmap <- function(df, pollutants) {
+    # Use yearly averages so the heatmap compares long-term pollutant trends.
     yearly_avg <- df %>%
         group_by(year) %>%
         summarise(
@@ -233,12 +255,15 @@ plot_correlation_heatmap <- function(df, pollutants) {
     corr_data <- yearly_avg %>%
         select(all_of(pollutants))
 
+    # Pearson correlation measures how similarly pollutant concentrations
+    # move over time. Pairwise complete observations handle missing values.
     corr_matrix <- cor(
         corr_data,
         use = "pairwise.complete.obs",
         method = "pearson"
     )
 
+    # Mask the upper triangle to avoid showing duplicate correlations.
     corr_masked <- corr_matrix
     corr_masked[upper.tri(corr_masked)] <- NA
 
@@ -261,6 +286,7 @@ plot_correlation_heatmap <- function(df, pollutants) {
             ticktext = c("-1", "-0.5", "0", "0.5", "1"),
             len = 0.75
         ),
+        # Text values are used both for hover labels and cell annotations.
         text = matrix(
             sprintf("%.2f", corr_masked),
             nrow = nrow(corr_masked),
@@ -274,6 +300,7 @@ plot_correlation_heatmap <- function(df, pollutants) {
         xgap = 2,
         ygap = 2
     ) %>%
+        # Add the correlation values directly into the heatmap cells.
         add_annotations(
             x = rep(colnames(corr_masked), each = nrow(corr_masked)),
             y = rep(rownames(corr_masked), times = ncol(corr_masked)),
@@ -308,6 +335,8 @@ plot_correlation_heatmap <- function(df, pollutants) {
             plot_bgcolor = "white",
             font = list(family = "Arial, sans-serif")
         ) %>%
+        # Disable navigation tools that are not needed for a fixed heatmap,
+        # but keep the export-to-image option available.
         config(
             displayModeBar = TRUE,
             modeBarButtonsToRemove = c(
